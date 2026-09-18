@@ -35,6 +35,12 @@ workflow {
     // Checking user parameters
     log.info("Checking inputs.")
 
+    // Exactly one of --fastq or --bam is required. This is checked here rather
+    // than with a schema `oneOf`, which Seqera Platform flags as a form error.
+    if (!params.fastq == !params.bam) {
+        throw new Exception("Provide exactly one of `--fastq` or `--bam`.")
+    }
+
     // Check maximum and minimum length
     ArrayList fastcat_extra_args = []
     if (params.min_len) { fastcat_extra_args << "-a $params.min_len" }
@@ -113,8 +119,8 @@ workflow {
                 "per_read_stats": false
             ])
     } else {
-            // if we didn't get a `--fastq`, there must have been a `--bam` (as is codified
-            // by the schema)
+            // if we didn't get a `--fastq`, there must have been a `--bam` (as is
+            // checked at the start of the workflow)
             ingress_samples = xam_ingress([
                 "input":params.bam,
                 "sample":params.sample,
